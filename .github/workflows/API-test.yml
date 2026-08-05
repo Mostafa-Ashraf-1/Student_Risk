@@ -23,6 +23,7 @@ jobs:
            sudo apt update
            sudo apt install python3-pip -y
            pip install -r requirements.txt
+           pip install httpx
 
     -  name: Testing API
        run: python -m pytest -s
