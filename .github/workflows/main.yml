@@ -11,7 +11,7 @@ on:
                -  "No"
 
 jobs:  
-  Tester:
+  API_Tester:
     runs-on: ubuntu-latest
     steps:
     -  name:  Checkout repository
@@ -38,6 +38,7 @@ jobs:
 
 
   DockerJob:
+      needs: API_Tester
       runs-on: ubuntu-latest
       if: ${{ inputs.build-push-docker == 'Yes' }}
       env:
@@ -65,3 +66,19 @@ jobs:
             run: |
              docker push $IMAGE_NAME:$IMAGE_TAG
              docker push $IMAGE_NAME:latest
+
+
+  DeployJob:
+    #needs: DockerJob
+    runs-on: ubuntu-latest
+
+    steps:
+      -  name:  Deploy to EC2
+         uses:  appleboy/ssh-action@v1
+         with:
+           host:  ${{ secrets.EC2_HOST }}
+           username:  ${{ secrets.EC2_USERNAME }}
+           key:  ${{ secrets.EC2_SSH_KEY }}
+           scripts: |
+             echo "Connected to EC2!"
+             docker --version
