@@ -69,7 +69,7 @@ jobs:
 
 
   DeployJob:
-    #needs: DockerJob
+    needs: DockerJob
     runs-on: ubuntu-latest
 
     steps:
@@ -80,5 +80,10 @@ jobs:
            username:  ${{ secrets.EC2_USERNAME }}
            key:  ${{ secrets.EC2_SSH_KEY }}
            script: |
-             echo "Connected to EC2!"
-             docker --version
+            docker pull mostafaashrafdev1/student-risk-api:latest
+            docker stop student-risk-api:latest || true
+            docker rm student-risk-api:latest || true
+            docker run -d \
+               --name student-risk-api \
+               -p 8000:8000 \
+               mostafaashrafdev1/student-risk-api:latest
