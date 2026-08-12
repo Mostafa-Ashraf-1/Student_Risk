@@ -7,3 +7,8 @@ pytest==9.1.1
 httpx
 python-json-logger
 ruff==0.16.2
+
+pandas
+matplotlib
+numpy
+sklearn

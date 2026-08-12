@@ -1,9 +1,7 @@
 import logging
-import pickle
-from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import Annotated, Literal
 
+import mlflow
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -13,34 +11,16 @@ from logger import configure_logging
 configure_logging()
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = Path(__file__).parent / "model.pkl"
 
-ml_models = {}
+MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-
-    logger.info("starting the application")
-
-    if not MODEL_PATH.exists():
-        raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
-
-    with open(MODEL_PATH, "rb") as f:  # noqa: ASYNC230
-        saved = pickle.load(f)
-        ml_models["pipeline"] = saved["pipeline"]
-    logger.info("Model loaded successfully.")
-
-    yield
-
-    logger.info("Shutting down application.")
-    ml_models.clear()
+model = mlflow.pyfunc.load_model(
+    model_uri='models:/Student-Risk-Model@champion'
+)
 
 
-app = FastAPI(lifespan=lifespan)
-
-inverse_map = {0: "fit", 1: "at-risk", 2: "unhealthy"}
-
+app = FastAPI()
 
 class UserInput(BaseModel):
     sleep_duration: Annotated[
@@ -72,17 +52,10 @@ def health():
 @app.post("/predict")
 def predict_health_risk(data: UserInput):
 
-    pipeline = ml_models.get("pipeline")
-
-    if not pipeline:
-        logger.critical("Model is not loaded")
-        raise HTTPException(status_code=500, detail="Model is not loaded")
-
-    # logger.info("Model loaded successfully.") << Shouldn't be in the predict.
     logger.info("Prediction request received.")
     input_df = pd.DataFrame([data.model_dump()])
     try:
-        predicted = pipeline.predict(input_df)[0]
+        predicted = model.predict(input_df)[0]
         logger.info(
             "Prediction completed successfully.",
             extra={"endpoint": "/predict", "model": "StudentRiskPipeline"},
@@ -91,4 +64,4 @@ def predict_health_risk(data: UserInput):
     except Exception:
         logger.exception("Prediction failed.")
         raise HTTPException(status_code=500, detail="Prediction failed.")
-    return {"health_condition": inverse_map[predicted]}
+    return {"health_condition": predicted}
