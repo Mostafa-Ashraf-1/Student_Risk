@@ -13,3 +13,4 @@ matplotlib
 numpy
 scikit-learn
 mlflow
+protobuf
