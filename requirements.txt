@@ -11,4 +11,4 @@ ruff==0.16.2
 pandas
 matplotlib
 numpy
-sklearn
+scikit-learn
