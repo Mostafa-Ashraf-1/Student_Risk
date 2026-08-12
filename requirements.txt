@@ -12,5 +12,5 @@ pandas
 matplotlib
 numpy
 scikit-learn
-mlflow
-protobuf
+mlflow==3.15.1
+protobuf==6.33.6
