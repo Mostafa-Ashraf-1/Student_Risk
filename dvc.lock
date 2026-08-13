@@ -1,0 +1,19 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python train.py
+    deps:
+    - path: Data/train.csv
+      hash: md5
+      md5: 2cedbd5379ee8968d865b4980f819514
+      size: 62703120
+    - path: train.py
+      hash: md5
+      md5: 7c53638f0d507ee787bb067f26ee9e78
+      size: 3147
+    params:
+      params.yaml:
+        train:
+          C: 12.5
+          max_iter: 1000
+          penalty: l2

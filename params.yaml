@@ -1,0 +1,5 @@
+
+train:
+  C: 12.5
+  max_iter: 1000
+  penalty: l2
