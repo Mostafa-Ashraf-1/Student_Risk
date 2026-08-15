@@ -1,4 +1,5 @@
 import mlflow
+import yaml
 import pandas as pd
 from mlflow import MlflowClient
 from sklearn.compose import ColumnTransformer
@@ -62,27 +63,27 @@ For feature engineering > We need to define a class that handles the columns
 and pass that class into our pipeline
 """
 
-params = {
-        'max_iter':1000,
-        'verbose':100
-}
+with open('params.yaml', 'r') as f:
+    params = yaml.safe_load(f)['train']
+
 
 mlflow.set_tracking_uri('http://127.0.0.1:5000')
 mlflow.set_experiment("Student-Risk-Model")
 
 mlflow.sklearn.autolog()
 
-best_val = -1
+# best_val = -1
 run_id = None
 
-for C in [0.01, 0.1, 1, 10]:
-    with mlflow.start_run(run_name=f"LR_C_{C}"):
+# for C in [0.01, 0.1, 1, 10]:
+with mlflow.start_run(run_name='LR_C_12.5'):
         pipeline = Pipeline([
         ("preprocessor", preprocessor),
         ("classifier", LogisticRegression(
-
-            **params,
-            C=C
+            
+            C=params['C'],
+            max_iter=params['max_iter'],
+            penalty=params['penalty']
              
         ))
             ])
@@ -95,13 +96,13 @@ for C in [0.01, 0.1, 1, 10]:
 
         mlflow.log_metric("val_f1", val_f1)
         mlflow.log_metric("val_accuracy", val_accuracy)
+        run_id = mlflow.active_run().info.run_id
+        # if val_f1 > best_val:
+        #     best_val = val_f1
+        #     best_run_id = mlflow.active_run().info.run_id
 
-        if val_f1 > best_val:
-            best_val = val_f1
-            best_run_id = mlflow.active_run().info.run_id
 
-
-model_uri = f'runs:/{best_run_id}/model'
+model_uri = f'runs:/{run_id}/model'
 model_version = mlflow.register_model(
     model_uri=model_uri,
     name="Student-Risk-Model"

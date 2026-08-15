@@ -3,4 +3,5 @@
 /tests/__pycache__
 /.ruff_cache
 /.pytest_cache
+/Data/train.csv
 mlflow.db
