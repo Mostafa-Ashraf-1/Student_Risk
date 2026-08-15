@@ -73,10 +73,10 @@ mlflow.set_experiment("Student-Risk-Model")
 mlflow.sklearn.autolog()
 
 # best_val = -1
-run_id = None
+# run_id = None
 
 # for C in [0.01, 0.1, 1, 10]:
-with mlflow.start_run(run_name='LR_C_12.5'):
+with mlflow.start_run(run_name=f'LR_C_{params['C']}'):
         pipeline = Pipeline([
         ("preprocessor", preprocessor),
         ("classifier", LogisticRegression(
@@ -96,22 +96,22 @@ with mlflow.start_run(run_name='LR_C_12.5'):
 
         mlflow.log_metric("val_f1", val_f1)
         mlflow.log_metric("val_accuracy", val_accuracy)
-        run_id = mlflow.active_run().info.run_id
+        # run_id = mlflow.active_run().info.run_id
         # if val_f1 > best_val:
         #     best_val = val_f1
         #     best_run_id = mlflow.active_run().info.run_id
 
 
-model_uri = f'runs:/{run_id}/model'
-model_version = mlflow.register_model(
-    model_uri=model_uri,
-    name="Student-Risk-Model"
-)
+# model_uri = f'runs:/{run_id}/model'
+# model_version = mlflow.register_model(
+#     model_uri=model_uri,
+#     name="Student-Risk-Model"
+# )
 
-client = MlflowClient()
-client.set_registered_model_alias(
-    name="Student-Risk-Model",
-    alias="champion",
-    version=model_version.version
-)
+# client = MlflowClient()
+# client.set_registered_model_alias(
+#     name="Student-Risk-Model",
+#     alias="champion",
+#     version=model_version.version
+# )
 
