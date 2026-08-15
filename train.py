@@ -5,6 +5,7 @@ from mlflow import MlflowClient
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -64,8 +65,11 @@ and pass that class into our pipeline
 """
 
 with open('params.yaml', 'r') as f:
-    params = yaml.safe_load(f)['train']
+    models = yaml.safe_load(f)['train']['model']
 
+
+model = models['RandomForest']
+params = model['params']
 
 mlflow.set_tracking_uri('http://127.0.0.1:5000')
 mlflow.set_experiment("Student-Risk-Model")
@@ -76,16 +80,17 @@ mlflow.sklearn.autolog()
 # run_id = None
 
 # for C in [0.01, 0.1, 1, 10]:
-with mlflow.start_run(run_name=f'LR_C_{params['C']}'):
-        pipeline = Pipeline([
-        ("preprocessor", preprocessor),
-        ("classifier", LogisticRegression(
-            
-            C=params['C'],
-            max_iter=params['max_iter'],
-            penalty=params['penalty']
-             
-        ))
+with mlflow.start_run(run_name=f'Student-Risk/RandomForest{params['max_depth']}'):
+        
+        if model['name'] == 'LogisticRegression':
+            pipeline = Pipeline([
+            ("preprocessor", preprocessor),
+            ("classifier", LogisticRegression( **params ))
+                ])
+        elif model['name'] == 'RandomForest':
+            pipeline = Pipeline([
+                 ("preprocessor", preprocessor),
+                 ('classifier', RandomForestClassifier( **params ))
             ])
         pipeline.fit(X_train, y_train)
 

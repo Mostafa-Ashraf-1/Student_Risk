@@ -9,11 +9,25 @@ stages:
       size: 62744387
     - path: train.py
       hash: md5
-      md5: 7c53638f0d507ee787bb067f26ee9e78
-      size: 3147
+      md5: 0d48f0116e184a79262ae728519e5ddd
+      size: 3489
     params:
       params.yaml:
         train:
-          C: 0.1
-          max_iter: 1000
-          penalty: l2
+          model:
+            LogsiticRegression:
+              name: LogsiticRegression
+              params:
+                C: 50
+                max_iter: 1000
+                penalty: l2
+            RandomForest:
+              name: RandomForest
+              params:
+                n_estimators: 300
+                max_depth: 20
+                min_samples_split: 2
+                min_samples_leaf: 1
+                max_features: sqrt
+                class_weight: balanced
+                n_jobs: -1
