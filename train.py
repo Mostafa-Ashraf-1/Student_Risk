@@ -1,11 +1,10 @@
 import mlflow
-import yaml
 import pandas as pd
-from mlflow import MlflowClient
+import yaml
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -64,34 +63,29 @@ For feature engineering > We need to define a class that handles the columns
 and pass that class into our pipeline
 """
 
+MODEL_REGISTERY ={
+     'LogisticRegression' : LogisticRegression,
+     'RandomForest' : RandomForestClassifier
+}
+
 with open('params.yaml', 'r') as f:
     models = yaml.safe_load(f)['train']['model']
 
-
-model = models['RandomForest']
-params = model['params']
+classifier = 'RandomForest'
+params = models[classifier]
 
 mlflow.set_tracking_uri('http://127.0.0.1:5000')
 mlflow.set_experiment("Student-Risk-Model")
 
 mlflow.sklearn.autolog()
 
-# best_val = -1
-# run_id = None
-
-# for C in [0.01, 0.1, 1, 10]:
-with mlflow.start_run(run_name=f'Student-Risk/RandomForest{params['max_depth']}'):
+with mlflow.start_run(run_name=f'Student-Risk/{classifier}'):
         
-        if model['name'] == 'LogisticRegression':
-            pipeline = Pipeline([
-            ("preprocessor", preprocessor),
-            ("classifier", LogisticRegression( **params ))
-                ])
-        elif model['name'] == 'RandomForest':
-            pipeline = Pipeline([
-                 ("preprocessor", preprocessor),
-                 ('classifier', RandomForestClassifier( **params ))
+        pipeline = Pipeline([
+        ("preprocessor", preprocessor),
+        ("classifier", MODEL_REGISTERY[classifier]( **params ))
             ])
+
         pipeline.fit(X_train, y_train)
 
         y_pred = pipeline.predict(X_valid)
@@ -101,22 +95,5 @@ with mlflow.start_run(run_name=f'Student-Risk/RandomForest{params['max_depth']}'
 
         mlflow.log_metric("val_f1", val_f1)
         mlflow.log_metric("val_accuracy", val_accuracy)
-        # run_id = mlflow.active_run().info.run_id
-        # if val_f1 > best_val:
-        #     best_val = val_f1
-        #     best_run_id = mlflow.active_run().info.run_id
 
-
-# model_uri = f'runs:/{run_id}/model'
-# model_version = mlflow.register_model(
-#     model_uri=model_uri,
-#     name="Student-Risk-Model"
-# )
-
-# client = MlflowClient()
-# client.set_registered_model_alias(
-#     name="Student-Risk-Model",
-#     alias="champion",
-#     version=model_version.version
-# )
 

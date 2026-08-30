@@ -1,9 +1,13 @@
 import logging
+import os
+from pathlib import Path
 from typing import Annotated, Literal
 
 import mlflow
+import mlflow.sklearn
 import pandas as pd
 from fastapi import FastAPI, HTTPException
+from mlflow import MlflowClient
 from pydantic import BaseModel, Field
 
 from logger import configure_logging
@@ -11,13 +15,29 @@ from logger import configure_logging
 configure_logging()
 logger = logging.getLogger(__name__)
 
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
+MODEL_NAME = "Student-Risk-Model"
+MODEL_ALIAS = "champion"
+MLFLOW_ARTIFACT_ROOT = Path(os.getenv("MLFLOW_ARTIFACT_ROOT", "mlruns"))
 
-MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
-model = mlflow.pyfunc.load_model(
-    model_uri='models:/Student-Risk-Model@champion'
-)
+
+def load_champion_model():
+    """Resolve the current champion alias and load its mounted MLflow artifacts."""
+    model_version = MlflowClient().get_model_version_by_alias(MODEL_NAME, MODEL_ALIAS)
+    model_id = model_version.source.removeprefix("models:/")
+    experiment_id = mlflow.get_run(model_version.run_id).info.experiment_id
+    model_path = MLFLOW_ARTIFACT_ROOT / experiment_id / "models" / model_id / "artifacts"
+
+    logger.info(
+        "Loading champion model from MLflow.",
+        extra={"model_name": MODEL_NAME, "alias": MODEL_ALIAS, "model_path": str(model_path)},
+    )
+    return mlflow.sklearn.load_model(str(model_path))
+
+
+model = load_champion_model()
 
 
 app = FastAPI()
