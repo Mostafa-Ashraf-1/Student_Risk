@@ -85,7 +85,7 @@ MODEL_REGISTERY ={
      'RandomForest' : RandomForestClassifier
 }
 
-with open('/kaggle/input/datasets/mostafaashrafdev/studentrisk-params', 'r') as f:
+with open('/kaggle/input/datasets/mostafaashrafdev/studentrisk-params/params.yaml', 'r') as f:
     models = yaml.safe_load(f)['train']['model']
 
 classifier = 'RandomForest'
