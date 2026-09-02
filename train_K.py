@@ -27,7 +27,7 @@ os.environ["MLFLOW_TRACKING_PASSWORD"] = os.environ["DAGSHUB_TOKEN"]
 mlflow.set_tracking_uri('https://dagshub.com/Mostafa-Ashraf-1/Student_Risk.mlflow')
 
 
-train_df = pd.read_csv('/kaggle/input/playground-series-s6e7/train.csv')
+train_df = pd.read_csv('/kaggle/input/competitions/playground-series-s6e7/train.csv')
 
 train_df.drop(columns = ['id'], inplace=True)
 
